@@ -21,3 +21,9 @@ VERILOG_SOURCES = $(PWD)/rtl/cache_lookup.sv
 endif
 
 include $(shell cocotb-config --makefiles)/Makefile.sim
+
+# Optional VCD tracing for the directed controller test.
+.PHONY: wave-controller
+wave-controller:
+	$(MAKE) clean
+	$(MAKE) TOPLEVEL=cache_controller WAVES=1
