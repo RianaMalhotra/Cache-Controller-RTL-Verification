@@ -1,3 +1,4 @@
+export PYTHONPATH := $(PWD)/tests:$(PYTHONPATH)
 SIM ?= verilator
 TOPLEVEL_LANG = verilog
 MODULE ?= test_cache_lookup
