@@ -5,7 +5,7 @@ from cocotb.triggers import RisingEdge, Timer
 
 async def tick(dut):
     await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await Timer(1, units="ns")
 
 
 @cocotb.test()
@@ -18,7 +18,7 @@ async def lru_replacement_and_set_isolation(dut):
     dut.victim_set.value = 2
     dut.valid_way0.value = 1
     dut.valid_way1.value = 1
-    cocotb.start_soon(Clock(dut.clk, 10, unit="ns").start())
+    cocotb.start_soon(Clock(dut.clk, 10, units="ns").start())
     await tick(dut)
     dut.rst_n.value = 1
     assert int(dut.victim_way.value) == 0
@@ -37,14 +37,14 @@ async def lru_replacement_and_set_isolation(dut):
     assert int(dut.victim_way.value) == 0
 
     dut.victim_set.value = 3
-    await Timer(1, unit="ns")
+    await Timer(1, units="ns")
     assert int(dut.victim_way.value) == 0
 
     dut.victim_set.value = 2
     dut.valid_way0.value = 0
-    await Timer(1, unit="ns")
+    await Timer(1, units="ns")
     assert int(dut.victim_way.value) == 0
     dut.valid_way0.value = 1
     dut.valid_way1.value = 0
-    await Timer(1, unit="ns")
+    await Timer(1, units="ns")
     assert int(dut.victim_way.value) == 1
