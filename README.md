@@ -98,6 +98,10 @@ make clean && make MODULE=test_cache_randomized
 
 Each suite uses a different RTL top level or test module; `make clean` prevents reuse of an incompatible Verilator build. The project pins cocotb 1.9.2, which has been used successfully with Verilator 5.032. CI installs dependencies in an isolated virtual environment and runs the same five suites.
 
+## Inspect a real waveform
+
+Run `make wave-controller` to generate an optional Verilator VCD trace for the directed cache-controller test. See the [GTKWave dirty-eviction walkthrough](docs/waveforms.md) for the signals to inspect, expected write-back/refill ordering, and guidance for capturing an interviewer-ready screenshot. **A verified screenshot has not yet been added.**
+
 ## Repository map
 
 ```text
@@ -111,6 +115,7 @@ tests/
 docs/
   architecture.md        RTL structure, interfaces, FSM, tradeoffs
   verification.md        Scoreboard, scenarios, limitations
+  waveforms.md           VCD capture and dirty-eviction walkthrough
 .github/workflows/
   verification.yml       Automated five-suite regression
 Makefile                 Simulation target selection
