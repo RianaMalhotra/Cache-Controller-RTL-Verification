@@ -34,3 +34,17 @@ See [architecture and roadmap](docs/architecture.md).
 ## Planned verification
 
 Directed and randomized cocotb tests, a Python reference model, scoreboards, corner cases and GitHub Actions CI.
+
+
+### Milestone 5 — Randomized scoreboard (pending validation)
+
+A deterministic 400-operation cocotb test compares read responses against an
+independent software memory model, exercising multiple sets, conflicting tags,
+write-back evictions, and a final read sweep. Run it after activating the venv:
+
+```bash
+make clean
+make MODULE=test_cache_randomized
+```
+
+This test is committed but has not yet been executed against the RTL.
