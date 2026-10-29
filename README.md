@@ -128,4 +128,107 @@ The highest-value extensions are **memory backpressure and variable response lat
 
 ---
 
-**Interview discussion starters:** How does dirty eviction preserve the latest data? Why does the reference model differ from backing memory? When does LRU update? What happens if a refill response arrives too early? How would the FSM change to support backpressure or multiple outstanding misses?
+## Technical Discussion: 
+
+### 1. How does dirty eviction preserve the latest data?
+
+In a write-back cache, CPU writes update the cached copy and set its dirty bit without immediately updating backing memory. When a dirty line is selected for eviction, the controller writes its modified contents back to memory before replacing it.
+
+This ensures that the latest data is preserved and prevents modified values from being lost during replacement.
+
+**Key concept:** Write-back policy, dirty bits, data consistency.
+
+### 2. Why does the reference model differ from backing memory?
+
+The reference model tracks the latest logically committed data, while backing memory may contain older values until dirty cache lines are written back.
+
+For example, if the CPU writes `0x25` to an address previously containing `0x10`, the reference model and cache reflect `0x25`, but backing memory may still contain `0x10`.
+
+This separation allows the verification environment to check correctness without incorrectly assuming every CPU write immediately updates memory.
+
+**Key concept:** Reference modeling, scoreboarding, memory consistency.
+
+### 3. When does LRU update?
+
+Least Recently Used (LRU) metadata updates when a cache access successfully completes.
+
+- **Read hit:** The accessed way becomes most recently used.
+- **Write hit:** The accessed way becomes most recently used.
+- **Cache refill:** The newly installed line becomes most recently used.
+- **Stalled request:** LRU remains unchanged until the access is accepted and completed according to the controller's protocol.
+
+For a two-way set-associative cache, one LRU bit per set is sufficient to identify the replacement candidate.
+
+**Key concept:** Cache replacement policies, state management.
+
+### 4. What happens if a refill response arrives too early?
+
+A refill response must correspond to a valid outstanding memory request and be accepted according to the memory interface protocol.
+
+If a response arrives before the controller expects it, the correct behavior depends on the interface:
+
+- Apply backpressure if the protocol supports it.
+- Buffer the response if buffering is implemented.
+- Flag a protocol violation if the response is illegal.
+
+The controller must never install unexpected refill data or corrupt an existing cache line.
+
+**Key concept:** Protocol validation, FSM robustness, corner-case verification.
+
+### 5. How would the FSM change to support backpressure or multiple outstanding misses?
+
+**Supporting backpressure:**
+
+Introduce ready/valid handshaking between the cache controller and memory interface. The controller holds a request stable until it is accepted and waits for the required completion response before advancing to dependent operations.
+
+**Supporting multiple outstanding misses:**
+
+Introduce Miss Status Holding Registers (MSHRs) to track independent memory transactions. Each MSHR records information such as the requested address, transaction state, and destination cache line.
+
+Transaction IDs and response matching allow refills to complete independently, potentially out of order.
+
+This transforms a simple blocking cache controller into a more scalable nonblocking architecture.
+
+**Key concept:** Flow control, transaction tracking, MSHRs, nonblocking caches.
+
+---
+
+### 6. Why use an FSM for cache control?
+
+A finite state machine provides explicit control over operations such as lookup, dirty writeback, refill, and request completion.
+
+Separating these operations into states makes control sequencing easier to reason about, debug, and verify.
+
+**Key concept:** RTL architecture, deterministic control, state transitions.
+
+### 7. What are the most important cache-controller verification scenarios?
+
+Important scenarios include:
+
+- Read and write hits.
+- Clean and dirty misses.
+- Dirty eviction followed by refill.
+- Correct victim selection under LRU.
+- Repeated accesses to the same cache line.
+- Back-to-back memory requests.
+- Unexpected or delayed memory responses.
+- Data integrity across multiple evictions.
+
+A strong verification environment checks both returned data and relevant control behavior, including dirty-bit updates, replacement decisions, and memory writebacks.
+
+**Key concept:** Directed testing, constrained-random testing, assertions, functional coverage.
+
+### 8. How would you improve this design for a production SoC?
+
+Potential improvements include:
+
+- Adding ready/valid handshaking and configurable memory latency.
+- Supporting multiple outstanding misses through MSHRs.
+- Adding SystemVerilog Assertions (SVA) for protocol properties.
+- Implementing functional coverage for hit, miss, eviction, and refill scenarios.
+- Supporting parameterized cache size, associativity, and line width.
+- Adding ECC or parity protection for cache data and metadata.
+
+These extensions would improve scalability, reliability, and verification completeness.
+
+**Key concept:** SoC scalability, design-for-verification, reliability engineering.
