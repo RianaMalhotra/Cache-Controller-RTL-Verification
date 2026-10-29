@@ -21,29 +21,28 @@
 
 ## System overview
 
-```text
-  CPU request: valid, read/write, address, write data
-                          |
-                          v
-                +------------------+
-                | Cache controller |
-                |  blocking FSM    |
-                +----+--------+----+
-                     |        |
-           tag/data  |        | victim / access
-                     v        v
-             +-------------+  +-------------+
-             | Cache arrays|  | Per-set LRU |
-             | 8 sets x 2  |  | replacement |
-             | tags/data   |  +-------------+
-             | valid/dirty |
-             +-------------+
-                     |
-                     v
-         Backing-memory request/response
-         (write-back or refill on miss)
-```
+```mermaid
+flowchart TD
+    CPU["CPU read/write request"] --> FSM["Cache controller<br/>Blocking FSM"]
+    FSM --> LOOKUP["Tag lookup<br/>Valid and tag comparison"]
+    LOOKUP -->|Hit| ACCESS["Read data or update cached word"]
+    ACCESS --> LRU["Update per-set LRU"]
+    LRU --> RESP["CPU response"]
+    LOOKUP -->|Miss| VICTIM["Choose invalid way or LRU victim"]
+    VICTIM --> DIRTY{"Victim valid<br/>and dirty?"}
+    DIRTY -->|Yes| WB["Write back victim word<br/>to backing memory"]
+    DIRTY -->|No| REFILL["Request replacement word"]
+    WB --> REFILL
+    REFILL --> INSTALL["Install tag and data<br/>Set valid, clear dirty"]
+    INSTALL --> RETRY["Complete pending read/write<br/>Mark dirty on write"]
+    RETRY --> LRU
 
+    ARRAYS[("8 sets × 2 ways<br/>Tags, data, valid/dirty")] -.-> LOOKUP
+    ARRAYS -.-> ACCESS
+    ARRAYS -.-> INSTALL
+    MEM[("Backing memory")] <--> WB
+    MEM <--> REFILL
+```
 For state transitions, interface timing, and design tradeoffs, see **[Architecture & design decisions](docs/architecture.md)**.
 
 ## Key design decisions
