@@ -13,7 +13,7 @@ CacheForge is built incrementally in synthesizable SystemVerilog with Python/coc
 
 ## Current status
 
-**Milestone 1 — tag lookup RTL and basic cocotb tests.** The current module checks whether a supplied pair of tags/valid bits contains a matching address tag. Full cache behavior is planned, **not yet implemented**.
+**Milestones 1–2 — tag lookup and 2-way cache storage arrays.** The storage module provides per-set tags, data, valid and dirty bits, synchronous line writes, and combinational lookup. LRU replacement and memory refill/write-back are **not yet implemented**.
 
 ## Run locally
 
@@ -24,6 +24,7 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 make
+make TOPLEVEL=cache_arrays
 ```
 
 See [architecture and roadmap](docs/architecture.md).
