@@ -1,50 +1,66 @@
 # CacheForge
 
-**A 2-way set-associative cache controller design and verification project.**
+**A two-way set-associative, write-back cache controller in SystemVerilog, verified with cocotb and Verilator.**
 
-CacheForge is built incrementally in synthesizable SystemVerilog with Python/cocotb verification and Verilator simulation. No physical hardware is required.
+[![RTL Simulation and Verification](https://github.com/RianaMalhotra/CacheForge/actions/workflows/verification.yml/badge.svg)](https://github.com/RianaMalhotra/CacheForge/actions/workflows/verification.yml)
 
-## Target architecture
+CacheForge is a simulation-only RTL and design verification project; no FPGA or physical hardware is required.
 
-- 16-bit byte addresses, 8 sets, 2 ways, 4-byte cache lines (64-byte data capacity)
-- Write-back, write-allocate cache
-- Per-set true LRU replacement
-- Blocking cache controller with refill/write-back sequencing
+## Architecture
 
-## Current status
+| Property | Configuration |
+| --- | --- |
+| Address width | 16 bits (byte-addressed) |
+| Data / cache line | 32 bits / 4 bytes |
+| Sets / ways | 8 sets / 2 ways |
+| Data capacity | 64 bytes |
+| Address decomposition | 11-bit tag, 3-bit set, 2-bit byte offset |
+| Replacement | True per-set LRU, invalid-way priority |
+| Write policy | Write-back, write-allocate |
+| Controller | Blocking FSM, one outstanding CPU request |
 
-**Milestones 1–4 — tag lookup, cache arrays, LRU, and blocking write-back/refill controller.** The storage module provides per-set tags, data, valid and dirty bits, synchronous line writes, and combinational lookup. The standalone LRU module selects invalid ways first and otherwise evicts the least recently used way. A blocking cache controller now integrates the arrays and LRU, with a simple request/response backing-memory interface. This milestone is committed but its integration test is **not yet validated**.
+The cache controller uses a simple request/response memory interface (not AXI). Requests are word-aligned in the current tests; byte-enable and subword operations are not implemented.
 
-## Run locally
+## RTL modules
 
-Install Python, make and Verilator, then:
+- `rtl/cache_lookup.sv`: combinational tag lookup (standalone milestone).
+- `rtl/cache_arrays.sv`: two-way tags, data, valid/dirty metadata.
+- `rtl/cache_lru.sv`: per-set replacement state.
+- `rtl/cache_controller.sv`: request handling, dirty eviction, refill and write-allocate FSM.
+
+## Run locally (Ubuntu / WSL)
+
+Prerequisites: Python 3.11 or 3.12, Verilator, make, C++ compiler and Git.
 
 ```bash
-python -m venv .venv
+sudo apt update
+sudo apt install -y verilator make g++ python3 python3-venv python3-pip
+git clone https://github.com/RianaMalhotra/CacheForge.git
+cd CacheForge
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-make
-make TOPLEVEL=cache_arrays
-make TOPLEVEL=cache_lru
-make TOPLEVEL=cache_controller
 ```
 
-See [architecture and roadmap](docs/architecture.md).
-
-## Planned verification
-
-Directed and randomized cocotb tests, a Python reference model, scoreboards, corner cases and GitHub Actions CI.
-
-
-### Milestone 5 — Randomized scoreboard (pending validation)
-
-A deterministic 400-operation cocotb test compares read responses against an
-independent software memory model, exercising multiple sets, conflicting tags,
-write-back evictions, and a final read sweep. Run it after activating the venv:
+Run each suite with a clean build directory:
 
 ```bash
-make clean
-make MODULE=test_cache_randomized
+make clean && make TOPLEVEL=cache_lookup
+make clean && make TOPLEVEL=cache_arrays
+make clean && make TOPLEVEL=cache_lru
+make clean && make TOPLEVEL=cache_controller
+make clean && make MODULE=test_cache_randomized
 ```
 
-This test is committed but has not yet been executed against the RTL.
+The test suite uses cocotb 1.9.2 for compatibility with the currently used Verilator 5.032. The last command selects `cache_controller` as the RTL top level and `test_cache_randomized` as the test module.
+
+## Verification
+
+- Directed tests for tag hits/misses, storage metadata, LRU behavior and controller read/write/eviction behavior.
+- Deterministic randomized test with **400 operations**, an independent Python memory scoreboard, and a final address sweep.
+- Read-refill and dirty write-back events are counted in the randomized test.
+- GitHub Actions runs all five suites on pushes to `main` and pull requests.
+
+The controller and randomized suites passed in local user-run simulations. GitHub Actions status should be checked separately; a passing test suite does not establish exhaustive correctness.
+
+See [architecture details](docs/architecture.md).
