@@ -13,7 +13,7 @@ CacheForge is built incrementally in synthesizable SystemVerilog with Python/coc
 
 ## Current status
 
-**Milestones 1–3 — tag lookup, 2-way cache storage arrays, and standalone LRU replacement.** The storage module provides per-set tags, data, valid and dirty bits, synchronous line writes, and combinational lookup. The standalone LRU module selects invalid ways first and otherwise evicts the least recently used way. Integration into a full controller and memory refill/write-back are **not yet implemented**.
+**Milestones 1–4 — tag lookup, cache arrays, LRU, and blocking write-back/refill controller.** The storage module provides per-set tags, data, valid and dirty bits, synchronous line writes, and combinational lookup. The standalone LRU module selects invalid ways first and otherwise evicts the least recently used way. A blocking cache controller now integrates the arrays and LRU, with a simple request/response backing-memory interface. This milestone is committed but its integration test is **not yet validated**.
 
 ## Run locally
 
@@ -26,6 +26,7 @@ pip install -r requirements.txt
 make
 make TOPLEVEL=cache_arrays
 make TOPLEVEL=cache_lru
+make TOPLEVEL=cache_controller
 ```
 
 See [architecture and roadmap](docs/architecture.md).
