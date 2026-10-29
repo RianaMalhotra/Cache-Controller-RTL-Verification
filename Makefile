@@ -10,6 +10,9 @@ MODULE = test_cache_arrays
 else ifeq ($(TOPLEVEL),cache_controller)
 VERILOG_SOURCES = $(PWD)/rtl/cache_arrays.sv $(PWD)/rtl/cache_lru.sv $(PWD)/rtl/cache_controller.sv
 MODULE = test_cache_controller
+else ifeq ($(MODULE),test_cache_randomized)
+VERILOG_SOURCES = $(PWD)/rtl/cache_arrays.sv $(PWD)/rtl/cache_lru.sv $(PWD)/rtl/cache_controller.sv
+TOPLEVEL = cache_controller
 else ifeq ($(TOPLEVEL),cache_lru)
 VERILOG_SOURCES = $(PWD)/rtl/cache_lru.sv
 MODULE = test_cache_lru
