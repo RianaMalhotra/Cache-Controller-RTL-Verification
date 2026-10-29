@@ -21,7 +21,9 @@ module cache_arrays #(
     output logic [TAG_BITS-1:0] selected_tag,
     output logic [DATA_WIDTH-1:0] selected_data,
     output logic selected_valid,
-    output logic selected_dirty
+    output logic selected_dirty,
+    output logic way0_valid,
+    output logic way1_valid
 );
     localparam int NUM_SETS = 1 << SET_BITS;
     logic [TAG_BITS-1:0] tags [0:NUM_SETS-1][0:1];
@@ -43,6 +45,8 @@ module cache_arrays #(
         end
     end
 
+    assign way0_valid = valid[set_index][0];
+    assign way1_valid = valid[set_index][1];
     assign selected_tag = tags[set_index][write_way];
     assign selected_data = data[set_index][write_way];
     assign selected_valid = valid[set_index][write_way];
