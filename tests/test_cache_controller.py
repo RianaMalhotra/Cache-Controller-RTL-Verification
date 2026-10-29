@@ -28,6 +28,9 @@ async def transact(dut, addr, write=0, data=0, memory=None):
             if int(dut.mem_req_write.value):
                 memory[mem_addr] = int(dut.mem_req_wdata.value)
             else:
+                # First clock accepts the refill request and enters REFILL_WAIT.
+                await cycle(dut)
+                # Present the response for the following clock edge.
                 dut.mem_resp_data.value = memory.get(mem_addr, 0)
                 dut.mem_resp_valid.value = 1
                 await cycle(dut)
