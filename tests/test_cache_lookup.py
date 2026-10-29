@@ -3,7 +3,7 @@ from cocotb.triggers import Timer
 
 
 async def settle():
-    await Timer(1, unit="ns")
+    await Timer(1, units="ns")
 
 
 @cocotb.test()
