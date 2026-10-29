@@ -4,7 +4,7 @@ from cocotb.triggers import RisingEdge, Timer
 
 
 async def settle():
-    await Timer(1, unit="ns")
+    await Timer(1, units="ns")
 
 
 async def store(dut, set_id, way, tag, value, valid=1, dirty=0):
@@ -17,13 +17,13 @@ async def store(dut, set_id, way, tag, value, valid=1, dirty=0):
     dut.write_en.value = 1
     await RisingEdge(dut.clk)
     dut.write_en.value = 0
-    await Timer(1, unit="ns")
+    await Timer(1, units="ns")
 
 
 @cocotb.test()
 async def cache_arrays_basic(dut):
     dut.clk.value = 0
-    cocotb.start_soon(Clock(dut.clk, 10, unit="ns").start())
+    cocotb.start_soon(Clock(dut.clk, 10, units="ns").start())
     dut.rst_n.value = 0
     dut.write_en.value = 0
     dut.set_index.value = 0
@@ -34,7 +34,7 @@ async def cache_arrays_basic(dut):
     dut.write_valid.value = 0
     dut.write_dirty.value = 0
     await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await Timer(1, units="ns")
     dut.rst_n.value = 1
     await settle()
     assert int(dut.hit.value) == 0
