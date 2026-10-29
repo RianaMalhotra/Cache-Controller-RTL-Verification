@@ -1,0 +1,40 @@
+name: RTL Simulation and Verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  cocotb-verilator:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install Verilator and build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y verilator make g++
+          verilator --version
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          cocotb-config --version
+      - name: Run all cocotb test suites
+        shell: bash
+        run: |
+          set -euo pipefail
+          for top in cache_lookup cache_arrays cache_lru cache_controller; do
+            make clean
+            make TOPLEVEL="$top"
+          done
+          make clean
+          make MODULE=test_cache_randomized
